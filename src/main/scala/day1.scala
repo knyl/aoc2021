@@ -1,5 +1,7 @@
+import scala.annotation.tailrec
 import scala.io.Source
 
+@tailrec
 def solve(numbers: List[Int], prev: Int = Int.MaxValue, acc: Int = 0) : Int =
   numbers match {
     case Nil => acc
