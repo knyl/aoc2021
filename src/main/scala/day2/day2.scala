@@ -14,7 +14,7 @@ case class Instruction(direction: Direction, steps: Int)
 
 def solve(numbers: Iterable[String], directionToStep: (Position, Instruction) => Position): Int =
   val instructions = numbers.toList.map(parseInstruction)
-  val finalPosition = instructions.foldLeft(Position(0, 0, 0)) { (acc: Position, el: Instruction) => directionToStep(acc, el) }
+  val finalPosition = instructions.foldLeft(Position(0, 0, 0)) { directionToStep }
   finalPosition.horizontal * finalPosition.depth
 
 def calculate(position: Position, instruction: Instruction): Position =
