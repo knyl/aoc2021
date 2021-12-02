@@ -12,37 +12,24 @@ case class Position(horizontal: Int, depth: Int, aim: Int)
 case class Instruction(direction: Direction, steps: Int)
 
 
-def solve2(numbers: Iterable[String]): Int =
+def solve(numbers: Iterable[String], directionToStep: (Position, Instruction) => Position): Int =
   val instructions = numbers.toList.map(parseInstruction)
-  val result = calculate(instructions)
-  result.horizontal * result.depth
+  val finalPosition = instructions.foldLeft(Position(0, 0, 0)) { (acc: Position, el: Instruction) => directionToStep(acc, el) }
+  finalPosition.horizontal * finalPosition.depth
 
-def calculate(instructions: List[Instruction], position: Position = Position(0, 0, 0)): Position =
-  if (instructions.isEmpty)
-    position
-  else
-    instructions.head match {
-      case Instruction(direction, steps) if direction == Direction.UP => calculate(instructions.tail, Position(position.horizontal, position.depth - steps, 0))
-      case Instruction(direction, steps) if direction == Direction.DOWN => calculate(instructions.tail, Position(position.horizontal, position.depth + steps, 0))
-      case Instruction(direction, steps) if direction == Direction.FORWARD => calculate(instructions.tail, Position(position.horizontal + steps, position.depth, 0))
-      case _ => throw new RuntimeException("shouldn't happen")
-    }
+def calculate(position: Position, instruction: Instruction): Position =
+  instruction.direction match {
+    case Direction.UP => Position(position.horizontal, position.depth - instruction.steps, 0)
+    case Direction.DOWN => Position(position.horizontal, position.depth + instruction.steps, 0)
+    case Direction.FORWARD => Position(position.horizontal + instruction.steps, position.depth, 0)
+  }
 
-def solve22(numbers: Iterable[String]): Int =
-  val instructions = numbers.toList.map(parseInstruction)
-  val result = calculate2(instructions)
-  result.horizontal * result.depth
-
-def calculate2(instructions: List[Instruction], position: Position = Position(0, 0, 0)): Position =
-  if (instructions.isEmpty)
-    position
-  else
-    instructions.head match {
-      case Instruction(direction, steps) if direction == Direction.UP => calculate2(instructions.tail, Position(position.horizontal, position.depth, position.aim - steps))
-      case Instruction(direction, steps) if direction == Direction.DOWN => calculate2(instructions.tail, Position(position.horizontal, position.depth, position.aim + steps))
-      case Instruction(direction, steps) if direction == Direction.FORWARD => calculate2(instructions.tail, Position(position.horizontal + steps, position.depth + position.aim * steps, position.aim))
-      case _ => throw new RuntimeException("shouldn't happen")
-    }
+def calculateWithAim(position: Position, instruction: Instruction): Position =
+  instruction.direction match {
+    case Direction.UP => Position(position.horizontal, position.depth, position.aim - instruction.steps)
+    case Direction.DOWN => Position(position.horizontal, position.depth, position.aim + instruction.steps)
+    case Direction.FORWARD => Position(position.horizontal + instruction.steps, position.depth + position.aim * instruction.steps, position.aim)
+  }
 
 
 def parseInstruction(instruction: String): Instruction =
@@ -61,8 +48,8 @@ def parseInstruction(instruction: String): Instruction =
 @main
 def main(): Unit =
   val example = List("forward 5", "down 5", "forward 8", "up 3", "down 8", "forward 2")
-  println(solve2(example) + " " + solve22(example))
+  println(solve(example, calculate) + " " + solve(example, calculateWithAim))
   val lines = Source.fromResource("day2.txt").getLines().toList
 
-  println("Pt1: " + solve2(lines))
-  println("Pt2: " + solve22(lines))
+  println("Pt1: " + solve(lines, calculate))
+  println("Pt2: " + solve(lines, calculateWithAim))
