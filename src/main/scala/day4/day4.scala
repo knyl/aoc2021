@@ -7,12 +7,12 @@ case class Position(x: Int, y: Int)
 
 type Board = Map[Position, Int]
 
-def part1(input: List[String]): Int =
+def part1(input: Iterable[String]): Int =
   val (boards, numbers) = parseInput(input)
   solve1(boards, numbers)
 
 @tailrec
-def solve1(boards: List[Board], numbers: List[Int]): Int =
+def solve1(boards: Iterable[Board], numbers: Iterable[Int]): Int =
   val currentNumber = numbers.head
   val updatedBoards = strikeNumbers(boards, currentNumber)
   val bingoBoard = getBingoBoard(updatedBoards)
@@ -26,7 +26,7 @@ def part2(input: List[String]): Int =
   solve2(boards, numbers)
 
 @tailrec
-def solve2(boards: List[Board], numbers: List[Int], lastWinningBoard: Board = Map(), lastBingoNumber: Int = -1): Int =
+def solve2(boards: Iterable[Board], numbers: Iterable[Int], lastWinningBoard: Board = Map(), lastBingoNumber: Int = -1): Int =
   if (numbers.isEmpty || boards.isEmpty)
     lastWinningBoard.values.sum * lastBingoNumber
   else
@@ -37,14 +37,14 @@ def solve2(boards: List[Board], numbers: List[Int], lastWinningBoard: Board = Ma
     val (lastBingoBoard, newLastBingoNumber) = if bingoBoard.isDefined then (bingoBoard.get, currentNumber) else (lastWinningBoard, lastBingoNumber)
     solve2(boardsWithoutWinningBoards, numbers.tail, lastBingoBoard, newLastBingoNumber)
 
-def getBingoBoard(boards: List[Board]): Option[Board] =
+def getBingoBoard(boards: Iterable[Board]): Option[Board] =
   boards.find(hasBingo)
 
 def hasBingo(board: Board): Boolean =
   val patterns = bingoPatterns()
   patterns.exists(_.forall(p => !board.contains(p)))
 
-def strikeNumbers(boards: List[Board], number: Int) =
+def strikeNumbers(boards: Iterable[Board], number: Int) =
   boards.map(_.filter(_._2 != number))
 
 def bingoPatterns(): List[List[Position]] =
@@ -61,17 +61,17 @@ def bingoPatterns(): List[List[Position]] =
     (0 until 5).toList.map(Position(4, _)),
   )
 
-def parseInput(input: List[String]): (List[Board], List[Int]) =
-  val numbers = input.head.split(",").map(_.toInt).toList
+def parseInput(input: Iterable[String]): (Iterable[Board], Iterable[Int]) =
+  val numbers = input.head.split(",").map(_.toInt)
   val boardInput = input.tail.tail
   val boards = parseBoards(boardInput)
   (boards, numbers)
 
-def parseBoards(input: List[String]): List[Board] =
+def parseBoards(input: Iterable[String]): Iterable[Board] =
   input.filter(_.length > 1).grouped(5).map(makeBoard).toList
 
-def makeBoard(input: List[String]): Board =
-  val boardLines = input.map(_.split(" ").filter(_.nonEmpty).toList)
+def makeBoard(input: Iterable[String]): Board =
+  val boardLines = input.map(_.split(" ").filter(_.nonEmpty))
   Map.from(boardLines.zipWithIndex.flatMap(el => el._1.zipWithIndex.map(el2 => (Position(el._2, el2._2), el2._1.toInt))))
 
 
