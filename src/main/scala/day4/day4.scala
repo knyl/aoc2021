@@ -48,18 +48,8 @@ def strikeNumbers(boards: Iterable[Board], number: Int) =
   boards.map(_.filter(_._2 != number))
 
 def bingoPatterns(): List[List[Position]] =
-  List(
-    (0 until 5).toList.map(Position(_, 0)),
-    (0 until 5).toList.map(Position(_, 1)),
-    (0 until 5).toList.map(Position(_, 2)),
-    (0 until 5).toList.map(Position(_, 3)),
-    (0 until 5).toList.map(Position(_, 4)),
-    (0 until 5).toList.map(Position(0, _)),
-    (0 until 5).toList.map(Position(1, _)),
-    (0 until 5).toList.map(Position(2, _)),
-    (0 until 5).toList.map(Position(3, _)),
-    (0 until 5).toList.map(Position(4, _)),
-  )
+  List.range(0, 5).map { x => List.range(0, 5).map { y => Position(x, y) } } ++
+  List.range(0, 5).map { x => List.range(0, 5).map { y => Position(y, x) } }
 
 def parseInput(input: Iterable[String]): (Iterable[Board], Iterable[Int]) =
   val numbers = input.head.split(",").map(_.toInt)
