@@ -11,9 +11,8 @@ def part1(input: List[String]): Int =
   val (boards, numbers) = parseInput(input)
   solve1(boards, numbers)
 
-
 @tailrec
-def solve1(boards: List[Map[Position, Int]], numbers: List[Int]): Int =
+def solve1(boards: List[Board], numbers: List[Int]): Int =
   val currentNumber = numbers.head
   val updatedBoards = strikeNumbers(boards, currentNumber)
   val bingoBoard = getBingoBoard(updatedBoards)
@@ -27,7 +26,7 @@ def part2(input: List[String]): Int =
   solve2(boards, numbers)
 
 @tailrec
-def solve2(boards: List[Map[Position, Int]], numbers: List[Int], lastWinningBoard: Map[Position, Int] = Map(), lastBingoNumber: Int = -1): Int =
+def solve2(boards: List[Board], numbers: List[Int], lastWinningBoard: Board = Map(), lastBingoNumber: Int = -1): Int =
   if (numbers.isEmpty || boards.isEmpty)
     lastWinningBoard.values.sum * lastBingoNumber
   else
@@ -35,17 +34,17 @@ def solve2(boards: List[Map[Position, Int]], numbers: List[Int], lastWinningBoar
     val updatedBoards = strikeNumbers(boards, currentNumber)
     val bingoBoard = getBingoBoard(updatedBoards)
     val boardsWithoutWinningBoards = updatedBoards.filter(!hasBingo(_))
-    val (lastBingoBoard, newLastBingoNumber) = if (bingoBoard.isDefined) then (bingoBoard.get, currentNumber) else (lastWinningBoard, lastBingoNumber)
+    val (lastBingoBoard, newLastBingoNumber) = if bingoBoard.isDefined then (bingoBoard.get, currentNumber) else (lastWinningBoard, lastBingoNumber)
     solve2(boardsWithoutWinningBoards, numbers.tail, lastBingoBoard, newLastBingoNumber)
 
-def getBingoBoard(boards: List[Map[Position, Int]]): Option[Map[Position, Int]] =
+def getBingoBoard(boards: List[Board]): Option[Board] =
   boards.find(hasBingo)
 
-def hasBingo(board: Map[Position, Int]): Boolean =
+def hasBingo(board: Board): Boolean =
   val patterns = bingoPatterns()
   patterns.exists(_.forall(p => !board.contains(p)))
 
-def strikeNumbers(boards: List[Map[Position, Int]], number: Int) =
+def strikeNumbers(boards: List[Board], number: Int) =
   boards.map(_.filter(_._2 != number))
 
 def bingoPatterns(): List[List[Position]] =
@@ -60,27 +59,24 @@ def bingoPatterns(): List[List[Position]] =
     (0 until 5).toList.map(Position(2, _)),
     (0 until 5).toList.map(Position(3, _)),
     (0 until 5).toList.map(Position(4, _)),
-    (0 until 5).toList.map(i => Position(i, i)),
-    (0 until 5).toList.map(i => Position(i, 5 - i)),
   )
 
-def parseInput(input: List[String]): (List[Map[Position, Int]], List[Int]) =
+def parseInput(input: List[String]): (List[Board], List[Int]) =
   val numbers = input.head.split(",").map(_.toInt).toList
   val boardInput = input.tail.tail
   val boards = parseBoards(boardInput)
   (boards, numbers)
 
-def parseBoards(input: List[String]): List[Map[Position, Int]] =
+def parseBoards(input: List[String]): List[Board] =
   input.filter(_.length > 1).grouped(5).map(makeBoard).toList
 
-def makeBoard(input: List[String]): Map[Position, Int] =
+def makeBoard(input: List[String]): Board =
   val boardLines = input.map(_.split(" ").filter(_.nonEmpty).toList)
   Map.from(boardLines.zipWithIndex.flatMap(el => el._1.zipWithIndex.map(el2 => (Position(el._2, el2._2), el2._1.toInt))))
 
 
 @main
 def main(): Unit =
-  //println("Ex: " + solve2(example))
   val lines = Source.fromResource("day4.txt").getLines().toList
 
   println("Pt1: " + part1(lines))
