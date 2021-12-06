@@ -3,7 +3,7 @@ module Day1 where
 import Prelude
 
 main = do
-  input <- readFile "day1.txt"
+  input <- readFile "resources/day1.txt"
   let numbers = map (read :: String -> Int) (lines input)
   print . length . filter id $ isIncreasing numbers
   print . length . filter id $ isIncreasing $ slidingWindows numbers
