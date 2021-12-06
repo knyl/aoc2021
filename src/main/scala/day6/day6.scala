@@ -7,12 +7,9 @@ type State = Map[Int, BigInt]
 
 def default = BigInt(0)
 
-@tailrec
-def solve(state: State, iterations: Int): BigInt =
-  if iterations == 0 then
-    state.values.sum
-  else
-    solve(nextState(state), iterations - 1)
+def solve(initialState: State, iterations: Int): BigInt =
+  val finalState = (0 until iterations).foldLeft(initialState)((state, _) => nextState(state))
+  finalState.values.sum
 
 def nextState(state: State): State =
   Map(
