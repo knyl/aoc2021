@@ -2,17 +2,17 @@ package day7
 
 import scala.io.Source
 
-def solve(numbers: List[Int], fuelCostFun: (Int, Int, Int) => Int): Int =
-  val min = numbers.head
+def solve(numbers: List[Int], fuelCostFun: (Int, Int) => Int): Int =
+  val offset = numbers.head
   val max = numbers.last
-  val fuels = numbers.foldLeft(List.fill(max - min + 1)(0))((acc, crabPosition) => acc.zipWithIndex.map((fuel, int) => fuel + fuelCostFun(crabPosition, int, min)))
+  val fuels = numbers.foldLeft(List.fill(max - offset + 1)(0))((acc, crabPosition) => acc.zipWithIndex.map((fuel, index) => fuel + fuelCostFun(crabPosition, index + offset)))
   fuels.min
 
-def getFuelCost(crabPosition: Int, currentIndex: Int, listMin: Int): Int =
-  Math.abs(listMin + currentIndex - crabPosition)
+def getFuelCost(crabPosition: Int, position: Int): Int =
+  Math.abs(position - crabPosition)
 
-def getFuelCost2(crabPosition: Int, currentIndex: Int, listMin: Int): Int =
-  val stepsToTake = Math.abs(listMin + currentIndex - crabPosition)
+def getFuelCost2(crabPosition: Int, position: Int): Int =
+  val stepsToTake = Math.abs(position - crabPosition)
   (1 to stepsToTake).sum
 
 @main
