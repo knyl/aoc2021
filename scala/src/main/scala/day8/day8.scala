@@ -16,8 +16,7 @@ def decode(number: List[String]): Int =
   number.map(decode).mkString.toInt
 
 def decode(num: String): Char =
-  val sn = sortedNum(num)
-  sn match {
+  sortedNum(num) match {
   case "abcefg" => '0'
   case "cf" => '1'
   case "acdeg" => '2'
@@ -32,32 +31,21 @@ def decode(num: String): Char =
 }
 
 def sortedNum(num: String): String =
-  val numList = num.toList
-  val sortedNumList = numList.sorted
-  val string = sortedNumList.mkString
   num.toList.sorted.mkString
 
 def getMapping(line: Numbers): Map[Char, Char] = // TODO
-  //println("get mapping for line " + line)
   val input = line.d1
   val char1 = line.d1.find(_.length == 2).orNull
   val char7 = line.d1.find(_.length == 3).orNull
   val char4 = line.d1.find(_.length == 4).orNull
   val char8 = line.d1.find(_.length == 7).orNull
   val a = char7.filter(!char1.contains(_)).head
-  //println(s"a: $a")
-  val (char9, g) = getG(char4 + a, line.d1.filter(_.length == 6))
-  //println(s"g: $g")
-  val (char3, d) = getD(char7 + g, line.d1.filter(_.length == 5))
-  //println(s"d: $d")
+  val (char9, g) = deduceChar(char4 + a, line.d1.filter(_.length == 6))
+  val (char3, d) = deduceChar(char7 + g, line.d1.filter(_.length == 5))
   val b = char4.filter(!(char1 + d).contains(_)).head
-  //println(s"b: $b")
   val e = char8.filter(!char9.contains(_)).head
-  //println(s"e: $e")
-  val (char2, c) = getC(List(a, d, e, g).mkString, line.d1.filter(_.length == 5))
-  //println(s"c: $c")
+  val (char2, c) = deduceChar(List(a, d, e, g).mkString, line.d1.filter(_.length == 5))
   val f = char1.filter(_ != c).head
-  //println(s"f: $f")
   Map(
     (a, 'a'),
     (b, 'b'),
@@ -68,21 +56,12 @@ def getMapping(line: Numbers): Map[Char, Char] = // TODO
     (g, 'g'),
   )
 
-def getG(char4a: String, chars: List[String]): (String, Char) =
-  val num9 = chars.find(str => str.count(!char4a.contains(_)) == 1).orNull
-  (num9, num9.filter(!char4a.contains(_)).head)
-
-def getD(char7g: String, chars: List[String]): (String, Char) =
-  val num3 = chars.find(str => str.count(!char7g.contains(_)) == 1).orNull
-  (num3, num3.filter(!char7g.contains(_)).head)
-
-def getC(adeg: String, chars: List[String]): (String, Char) =
-  val num2 = chars.find(str => str.count(!adeg.contains(_)) == 1).orNull
-  (num2, num2.filter(!adeg.contains(_)).head)
+def deduceChar(filter: String, chars: List[String]): (String, Char) =
+  val num = chars.find(str => str.count(!filter.contains(_)) == 1).orNull
+  (num, num.filter(!filter.contains(_)).head)
 
 def applyMapping(outputs: List[String], mapping: Map[Char, Char]): List[String] =
-  val foo = outputs.map(toNum(_, mapping))
-  foo
+  outputs.map(toNum(_, mapping))
 
 def toNum(str: String, mapping: Map[Char, Char]): String =
   str.flatMap(mapping.get).mkString
