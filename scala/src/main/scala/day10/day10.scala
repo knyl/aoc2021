@@ -4,8 +4,10 @@ import scala.annotation.tailrec
 import scala.compiletime.ops.int./
 import scala.io.Source
 
-def solve1(lines: List[String]): Int =
-  lines.flatMap(findImbalance(_)).map(getScore).sum
+enum ResultType:
+  case INCOMPLETE, CORRUPT
+
+case class Result(chars: List[Char], resultType: ResultType)
 
 def getScore(c: Char): Int = c match {
   case ')' => 3
@@ -15,13 +17,15 @@ def getScore(c: Char): Int = c match {
   case _ => throw RuntimeException(s"No score for char $c")
 }
 
-def solve2(lines: List[String]): Long =
-  val withoutCorruptedLines = lines.filter(findImbalance(_).isEmpty)
-  val linesWithScore = withoutCorruptedLines.map(balanceLine(_)).map(str => str.foldLeft(0L)(calculateScore))
-  val foo = linesWithScore.length
-  linesWithScore.sorted.drop(foo/2).head
+def solve(lines: List[String]): (Long, Long) =
+  val lineResult = lines.map(getMissingChars(_))
+  val corruptedLines = lineResult.filter(_.resultType == ResultType.CORRUPT)
+  val incompleteLines = lineResult.filter(_.resultType == ResultType.INCOMPLETE)
+  val scoreDay1 = corruptedLines.map(_.chars.head).map(getScore).sum
+  val scoreDay2 = incompleteLines.map(_.chars).map(_.foldLeft(0L)(calculateScore2)).sorted.drop(incompleteLines.length/2).head
+  (scoreDay1, scoreDay2)
 
-def calculateScore(score: Long, c: Char): Long =
+def calculateScore2(score: Long, c: Char): Long =
   score * 5 + getScore2(c)
 
 def getScore2(c: Char): Int = c match {
@@ -33,28 +37,17 @@ def getScore2(c: Char): Int = c match {
 }
 
 @tailrec
-def balanceLine(string: String, parsed: List[Char] = List()): List[Char] =
+def getMissingChars(string: String, parsed: List[Char] = List()): Result =
   if string.isEmpty then
-    parsed.map(openToClose)
+    Result(parsed.map(openToClose), ResultType.INCOMPLETE)
   else
     val head = string.head
     if isOpening(head) then
-      balanceLine(string.tail, head :: parsed)
-    else
-      balanceLine(string.tail, parsed.tail)
-
-@tailrec
-def findImbalance(string: String, parsed: List[Char] = List()): Option[Char] =
-  if string.isEmpty then
-    Option.empty
-  else
-    val head = string.head
-    if isOpening(head) then
-      findImbalance(string.tail, head :: parsed)
+      getMissingChars(string.tail, head :: parsed)
     else if openToClose(parsed.headOption.getOrElse('f')) == head then
-      findImbalance(string.tail, parsed.tail)
+      getMissingChars(string.tail, parsed.tail)
     else
-      Option(head)
+      Result(List(head), ResultType.CORRUPT)
 
 def isOpening(c: Char): Boolean =
   Set('(', '[', '{', '<').contains(c)
@@ -74,9 +67,10 @@ def openToClose(c: Char): Char = c match {
 def main(): Unit =
   val input = Source.fromResource("day10.txt").getLines().toList
   //val input = example.split("\n").toList
+  val (day1, day2) = solve(input)
 
-  println("Pt1: " + solve1(input))
-  println("Pt2: " + solve2(input))
+  println("Pt1: " + day1)
+  println("Pt2: " + day2)
 
 
 val example =
