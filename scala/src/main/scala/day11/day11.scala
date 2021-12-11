@@ -25,26 +25,28 @@ def solve2(field: Field, currIteration: Int = 0): Int =
     solve2(updatedField, currIteration + 1)
 
 def nextState(field: Field): (Field, Int) =
-  val increasedEnergy = increaseEnergy(field)
-  val toFlash = increasedEnergy.filter(_._2 > 9).keys.toList
-  val (updatedField, hasFlashed) = flash(toFlash, increasedEnergy, Set())
-  val resetAllFlashed: Field = updatedField.filter((pos, energy) => hasFlashed.contains(pos)).map((pos, energy) => (pos, 0))
+  val increasedEnergyField = increaseEnergy(field)
+  val toFlash = increasedEnergyField.filter(isFlashing).keys.toList
+  val (updatedField, hasFlashed) = flash(toFlash, increasedEnergyField)
+  val resetAllFlashed: Field = updatedField.filter(isFlashing).map((pos, energy) => (pos, 0))
   (updatedField ++ resetAllFlashed, hasFlashed.size)
 
 def increaseEnergy(field: Field): Field =
   field.map((pos, energy) => (pos, energy + 1))
 
 @tailrec
-def flash(toFlash: List[Position], field: Field, hasFlashed: Set[Position]): (Field, Set[Position]) =
+def flash(toFlash: List[Position], field: Field, hasFlashed: Set[Position] = Set()): (Field, Set[Position]) =
   if toFlash.isEmpty then
     (field, hasFlashed)
   else if hasFlashed.contains(toFlash.head) then
     flash(toFlash.tail, field, hasFlashed)
   else
     val neighbours = getNeighbourPositions(toFlash.head).toSet
-    val updatedNeighbours: Field = field.filter((pos, energy) => neighbours.contains(pos)).map((pos, energy) => (pos, energy + 1))
-    val neighboursToFlash: List[Position] = updatedNeighbours.filter((pos, energy) => energy > 9 && !hasFlashed(pos)).keys.toList
+    val updatedNeighbours = field.filter((pos, energy) => neighbours.contains(pos)).map((pos, energy) => (pos, energy + 1))
+    val neighboursToFlash = updatedNeighbours.filter(isFlashing).filter((pos, energy) => !hasFlashed(pos)).keys.toList
     flash(neighboursToFlash ++ toFlash.tail, field ++ updatedNeighbours, hasFlashed + toFlash.head)
+
+def isFlashing(pos: Position, energy: Int): Boolean = energy > 9
 
 def getNeighbourPositions(p: Position): List[Position] =
   List(
@@ -58,7 +60,7 @@ def main(): Unit =
   val input = Source.fromResource("day11.txt").getLines().toList
   //val input = example.split("\n").toList
   val intLines = input.map(_.toCharArray.map(c => c.asDigit))
-  val map = Map.from(intLines.zipWithIndex.flatMap(el => el._1.zipWithIndex.map(el2 => (Position(el._2, el2._2), el2._1.toInt))))
+  val map = Map.from(intLines.zipWithIndex.flatMap(el => el._1.zipWithIndex.map(el2 => (Position(el._2, el2._2), el2._1))))
 
   println("Pt1: " + solve(map, 100))
   println("Pt2: " + solve2(map))
