@@ -22,11 +22,10 @@ def solve(lines: List[String]): (Long, Long) =
   val corruptedLines = lineResult.filter(_.resultType == ResultType.CORRUPT)
   val incompleteLines = lineResult.filter(_.resultType == ResultType.INCOMPLETE)
   val scoreDay1 = corruptedLines.map(_.chars.head).map(getScore).sum
-  val scoreDay2 = incompleteLines.map(_.chars).map(_.foldLeft(0L)(calculateScore2)).sorted.drop(incompleteLines.length/2).head
+  val scoreDay2 = incompleteLines.map(_.chars).map(_.foldLeft(0L)(calculateScore2)).sorted.drop(incompleteLines.length / 2).head
   (scoreDay1, scoreDay2)
 
-def calculateScore2(score: Long, c: Char): Long =
-  score * 5 + getScore2(c)
+def calculateScore2(score: Long, c: Char): Long = score * 5 + getScore2(c)
 
 def getScore2(c: Char): Int = c match {
   case ')' => 1
@@ -49,11 +48,9 @@ def getMissingChars(string: String, parsed: List[Char] = List()): Result =
     else
       Result(List(head), ResultType.CORRUPT)
 
-def isOpening(c: Char): Boolean =
-  Set('(', '[', '{', '<').contains(c)
+def isOpening(c: Char): Boolean = Set('(', '[', '{', '<').contains(c)
 
-def isClosing(c: Char): Boolean =
-  Set(')', ']', '}', '>').contains(c)
+def isClosing(c: Char): Boolean = Set(')', ']', '}', '>').contains(c)
 
 def openToClose(c: Char): Char = c match {
   case '(' => ')'
