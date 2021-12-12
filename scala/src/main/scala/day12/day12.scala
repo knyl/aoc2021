@@ -5,30 +5,22 @@ import scala.io.Source
 type Graph = Map[String, Path]
 type Path = List[String]
 
-def solve(graph: Graph): Int =
-  val paths = findPaths1("start", graph)
-  paths.size
-
-def solve2(graph: Graph): Int =
-  val paths = findPaths2("start", graph)
-  paths.size
-
-def findPaths1(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List()): List[Path] =
+def findPaths1(graph: Graph, node: String = "start", visited: Set[String] = Set(), path: Path = List()): List[Path] =
   if node == "end" then List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
-    neighbours.filter(canVisit(_, visited)).flatMap(findPaths1(_, graph, visited + node, node :: path))
+    neighbours.filter(canVisit(_, visited)).flatMap(findPaths1(graph, _, visited + node, node :: path))
 
-def findPaths2(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
+def findPaths2(graph: Graph, node: String = "start", visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
   if node == "end" then List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
     if hasVisitedTwice then
-      neighbours.filter(canVisit(_, visited)).flatMap(findPaths2(_, graph, visited + node, node :: path, hasVisitedTwice))
+      neighbours.filter(canVisit(_, visited)).flatMap(findPaths2(graph, _, visited + node, node :: path, hasVisitedTwice))
     else
       neighbours.filter(n => n != "start").flatMap(nodeToVisit => {
         val hasNowVisitedTwice = visited.contains(nodeToVisit) && (nodeToVisit == nodeToVisit.toLowerCase)
-        findPaths2(nodeToVisit, graph, visited + node, node :: path, hasNowVisitedTwice)
+        findPaths2(graph, nodeToVisit, visited + node, node :: path, hasNowVisitedTwice)
       })
 
 
@@ -55,12 +47,9 @@ def main(): Unit =
   val ex1 = example1.split("\n").toList
   val ex2 = example2.split("\n").toList
   val ex3 = example3.split("\n").toList
-  println("Ex1: " + solve2(parseInput(ex1)))
-  println("Ex2: " + solve2(parseInput(ex2)))
-  println("Ex3: " + solve2(parseInput(ex3)))
 
-  println("Pt1: " + solve(parseInput(input)))
-  println("Pt2: " + solve2(parseInput(input)))
+  println("Pt1: " + findPaths1(parseInput(input)).size)
+  println("Pt2: " + findPaths2(parseInput(input)).size)
 
 
 val example1 =
