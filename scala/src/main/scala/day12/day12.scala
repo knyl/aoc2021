@@ -2,7 +2,8 @@ package day12
 
 import scala.io.Source
 
-type Graph = Map[String, List[String]]
+type Graph = Map[String, Path]
+type Path = List[String]
 
 def solve(graph: Graph): Int =
   val paths = dfs("start", graph)
@@ -12,14 +13,14 @@ def solve2(graph: Graph): Int =
   val paths = dfs2("start", graph)
   paths.size
 
-def dfs(node: String, graph: Graph, visited: Set[String] = Set(), path: List[String] = List()): List[List[String]] =
+def dfs(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List()): List[Path] =
   if node == "end" then
     List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
     neighbours.filter(canVisit(_, visited)).flatMap(dfs(_, graph, visited + node, node :: path))
 
-def dfs2(node: String, graph: Graph, visited: Set[String] = Set(), path: List[String] = List(), hasVisitedTwice: Boolean = false): List[List[String]] =
+def dfs2(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
   if node == "end" then
     List((node :: path).reverse)
   else
