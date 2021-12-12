@@ -6,32 +6,32 @@ type Graph = Map[String, Path]
 type Path = List[String]
 
 def solve(graph: Graph): Int =
-  val paths = dfs("start", graph)
+  val paths = findPaths1("start", graph)
   paths.size
 
 def solve2(graph: Graph): Int =
-  val paths = dfs2("start", graph)
+  val paths = findPaths2("start", graph)
   paths.size
 
-def dfs(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List()): List[Path] =
+def findPaths1(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List()): List[Path] =
   if node == "end" then
     List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
-    neighbours.filter(canVisit(_, visited)).flatMap(dfs(_, graph, visited + node, node :: path))
+    neighbours.filter(canVisit(_, visited)).flatMap(findPaths1(_, graph, visited + node, node :: path))
 
-def dfs2(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
+def findPaths2(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
   if node == "end" then
     List((node :: path).reverse)
   else
     if hasVisitedTwice then
       val neighbours = graph.getOrElse(node, List())
-      neighbours.filter(canVisit(_, visited)).flatMap(dfs2(_, graph, visited + node, node :: path, hasVisitedTwice))
+      neighbours.filter(canVisit(_, visited)).flatMap(findPaths2(_, graph, visited + node, node :: path, hasVisitedTwice))
     else
       val neighbours = graph.getOrElse(node, List())
       neighbours.filter(n => n != "start").flatMap(nodeToVisit => {
         val hasNowVisitedTwice = visited.contains(nodeToVisit) && (nodeToVisit == nodeToVisit.toLowerCase)
-        dfs2(nodeToVisit, graph, visited + node, node :: path, hasNowVisitedTwice)
+        findPaths2(nodeToVisit, graph, visited + node, node :: path, hasNowVisitedTwice)
       })
 
 
