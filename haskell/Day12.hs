@@ -34,7 +34,8 @@ findPaths1' _ _ path "end" = [reverse ("end" : path)]
 findPaths1' graph visited path node =
   let allNeighbours = Map.findWithDefault [] node graph
       neighbours = filter (canVisit visited) allNeighbours
-  in concatMap (findPaths1' graph (Set.insert node visited) (node:path)) neighbours
+      updatedVisited = Set.insert node visited
+  in concatMap (findPaths1' graph updatedVisited (node:path)) neighbours
 
 canVisit :: Set.Set String -> String -> Bool
 canVisit visited node = Set.notMember node visited || all isUpper node
@@ -47,10 +48,12 @@ findPaths2' :: Graph -> Set.Set String -> Path -> Bool -> String -> [Path]
 findPaths2' _ _ path _ "end" = [reverse ("end" : path)]
 findPaths2' graph visited path True node =
   let neighbours = filter (canVisit visited) $ getNeighbours graph node
-  in concatMap (findPaths2' graph (Set.insert node visited) (node:path) True) neighbours
+      updatedVisited = Set.insert node visited
+  in concatMap (findPaths2' graph updatedVisited (node:path) True) neighbours
 findPaths2' graph visited path False node =
   let neighbours = filter (/= "start") $ getNeighbours graph node
-  in concatMap (\x -> findPaths2' graph (Set.insert node visited) (node:path) (secondVisit visited x) x) neighbours
+      updatedVisited = Set.insert node visited
+  in concatMap (\x -> findPaths2' graph updatedVisited (node:path) (secondVisit visited x) x) neighbours
 
 getNeighbours :: Graph -> String -> [String]
 getNeighbours graph node = Map.findWithDefault [] node graph
