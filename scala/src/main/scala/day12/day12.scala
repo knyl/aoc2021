@@ -8,12 +8,31 @@ def solve(graph: Graph): Int =
   val paths = dfs("start", graph)
   paths.size
 
+def solve2(graph: Graph): Int =
+  val paths = dfs2("start", graph)
+  paths.size
+
 def dfs(node: String, graph: Graph, visited: Set[String] = Set(), path: List[String] = List()): List[List[String]] =
   if node == "end" then
     List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
     neighbours.filter(canVisit(_, visited)).flatMap(dfs(_, graph, visited + node, node :: path))
+
+def dfs2(node: String, graph: Graph, visited: Set[String] = Set(), path: List[String] = List(), hasVisitedTwice: Boolean = false): List[List[String]] =
+  if node == "end" then
+    List((node :: path).reverse)
+  else
+    if hasVisitedTwice then
+      val neighbours = graph.getOrElse(node, List())
+      neighbours.filter(canVisit(_, visited)).flatMap(dfs2(_, graph, visited + node, node :: path, hasVisitedTwice))
+    else
+      val neighbours = graph.getOrElse(node, List())
+      neighbours.filter(n => n != "start").flatMap(nodeToVisit => {
+        val hasNowVisitedTwice = visited.contains(nodeToVisit) && (nodeToVisit == nodeToVisit.toLowerCase)
+        dfs2(nodeToVisit, graph, visited + node, node :: path, hasNowVisitedTwice)
+      })
+
 
 def canVisit(node: String, visited: Set[String]): Boolean =
   !visited.contains(node) || (node == node.toUpperCase)
@@ -38,12 +57,12 @@ def main(): Unit =
   val ex1 = example1.split("\n").toList
   val ex2 = example2.split("\n").toList
   val ex3 = example3.split("\n").toList
-  println("Ex1: " + solve(parseInput(ex1)))
-  println("Ex2: " + solve(parseInput(ex2)))
-  println("Ex3: " + solve(parseInput(ex3)))
+  println("Ex1: " + solve2(parseInput(ex1)))
+  println("Ex2: " + solve2(parseInput(ex2)))
+  println("Ex3: " + solve2(parseInput(ex3)))
 
   println("Pt1: " + solve(parseInput(input)))
-  //println("Pt2: " + solve2(map))
+  println("Pt2: " + solve2(parseInput(input)))
 
 
 val example1 =
