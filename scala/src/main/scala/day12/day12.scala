@@ -14,21 +14,18 @@ def solve2(graph: Graph): Int =
   paths.size
 
 def findPaths1(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List()): List[Path] =
-  if node == "end" then
-    List((node :: path).reverse)
+  if node == "end" then List((node :: path).reverse)
   else
     val neighbours = graph.getOrElse(node, List())
     neighbours.filter(canVisit(_, visited)).flatMap(findPaths1(_, graph, visited + node, node :: path))
 
 def findPaths2(node: String, graph: Graph, visited: Set[String] = Set(), path: Path = List(), hasVisitedTwice: Boolean = false): List[Path] =
-  if node == "end" then
-    List((node :: path).reverse)
+  if node == "end" then List((node :: path).reverse)
   else
+    val neighbours = graph.getOrElse(node, List())
     if hasVisitedTwice then
-      val neighbours = graph.getOrElse(node, List())
       neighbours.filter(canVisit(_, visited)).flatMap(findPaths2(_, graph, visited + node, node :: path, hasVisitedTwice))
     else
-      val neighbours = graph.getOrElse(node, List())
       neighbours.filter(n => n != "start").flatMap(nodeToVisit => {
         val hasNowVisitedTwice = visited.contains(nodeToVisit) && (nodeToVisit == nodeToVisit.toLowerCase)
         findPaths2(nodeToVisit, graph, visited + node, node :: path, hasNowVisitedTwice)
