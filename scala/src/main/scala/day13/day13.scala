@@ -7,47 +7,34 @@ type Instructions = List[Fold]
 type Paper = Set[Position]
 
 case class Position(x: Int, y: Int)
+
 case class Fold(direction: Direction, position: Int)
 
 enum Direction:
   case X, Y
 
 
-def foldPaper(dots: Paper, fold: Fold): Paper = fold.direction match {
-  case Direction.X => foldX(dots, fold.position)
-  case Direction.Y => foldY(dots, fold.position)
-}
+def foldPaper(dots: Paper, fold: Fold): Paper = fold.direction match
+  case Direction.X => foldPaper(dots, fold.position, _.x, p => Position(fold.position - (p.x - fold.position), p.y))
+  case Direction.Y => foldPaper(dots, fold.position, _.y, p => Position(p.x, fold.position - (p.y - fold.position)))
 
-def foldX(dots: Paper, foldAt: Int): Paper =
-  val xMax = dots.maxBy(_.x).x
-  val yMax = dots.maxBy(_.y).y
-  val dotsToKeep = dots.filter(_.x < foldAt)
-  val dotsToMove = dots.filter(_.x > foldAt)
-  val movedDots = dotsToMove.map(p => Position(foldAt - (p.x - foldAt), p.y))
-  dotsToKeep.union(movedDots)
-
-def foldY(dots: Paper, foldAt: Int): Paper =
-  val xMax = dots.maxBy(_.x).x
-  val yMax = dots.maxBy(_.y).y
-  val dotsToKeep = dots.filter(_.y < foldAt)
-  val dotsToMove = dots.filter(_.y > foldAt)
-  val movedDots = dotsToMove.map(p => Position(p.x, foldAt - (p.y - foldAt)))
+def foldPaper(dots: Paper, foldAt: Int, accessFun: Position => Int, updateFun: Position => Position): Paper =
+  val dotsToKeep = dots.filter(accessFun(_) < foldAt)
+  val movedDots = dots.filter(accessFun(_) > foldAt).map(updateFun)
   dotsToKeep.union(movedDots)
 
 @tailrec
-def parseInput(lines: List[String], dots: Paper = Set(), folds: Instructions = List()): (Paper, Instructions) = lines match {
+def parseInput(lines: List[String], dots: Paper = Set(), folds: Instructions = List()): (Paper, Instructions) = lines match
   case List() => (dots, folds.reverse)
   case _ =>
     val (updatedDots, updatedFolds) = getInput(lines.head, dots, folds)
     parseInput(lines.tail, updatedDots, updatedFolds)
-}
 
-def getInput(line: String, dots: Paper, folds: Instructions): (Paper, Instructions) = line match {
-  case s"$x,$y"             => (dots + Position(x.toInt, y.toInt), folds)
+def getInput(line: String, dots: Paper, folds: Instructions): (Paper, Instructions) = line match
+  case s"$x,$y" => (dots + Position(x.toInt, y.toInt), folds)
   case s"fold along y=$pos" => (dots, Fold(Direction.Y, pos.toInt) :: folds)
   case s"fold along x=$pos" => (dots, Fold(Direction.X, pos.toInt) :: folds)
-  case _                    => throw RuntimeException(s"Cant parse $line")
-}
+  case _ => throw RuntimeException(s"Cant parse $line")
 
 @main
 def main(): Unit =
