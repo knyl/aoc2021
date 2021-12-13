@@ -15,10 +15,10 @@ enum Direction:
 
 
 def foldPaper(dots: Paper, fold: Fold): Paper = fold.direction match
-  case Direction.X => foldPaper(dots, fold.position, _.x, p => Position(fold.position - (p.x - fold.position), p.y))
-  case Direction.Y => foldPaper(dots, fold.position, _.y, p => Position(p.x, fold.position - (p.y - fold.position)))
+  case Direction.X => doFold(dots, fold.position, _.x, p => Position(fold.position - (p.x - fold.position), p.y))
+  case Direction.Y => doFold(dots, fold.position, _.y, p => Position(p.x, fold.position - (p.y - fold.position)))
 
-def foldPaper(dots: Paper, foldAt: Int, accessFun: Position => Int, updateFun: Position => Position): Paper =
+def doFold(dots: Paper, foldAt: Int, accessFun: Position => Int, updateFun: Position => Position): Paper =
   val dotsToKeep = dots.filter(accessFun(_) < foldAt)
   val movedDots = dots.filter(accessFun(_) > foldAt).map(updateFun)
   dotsToKeep.union(movedDots)
