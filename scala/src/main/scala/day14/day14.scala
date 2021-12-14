@@ -16,13 +16,13 @@ def createPairMap(start: String): PairCounts =
   (start zip start.tail).groupBy(identity).map((k, v) => (k, v.size.toLong))
 
 def getResult(resultingPairs: PairCounts, start: String): Long =
+  val edgeChars = Set(start.charAt(0), start.charAt(start.length - 1))
   val charCounts = resultingPairs.toList
     .flatMap((k, v) => List((k._1, v), (k._2, v)))
     .groupBy(_._1)
     .map((k, v) => (k, v.map(_._2).sum))
-  val edgeChars = Set(start.charAt(0), start.charAt(start.length - 1))
-  val finalCharCounts = charCounts.map((k, v) => if edgeChars.contains(k) then (k, v + 1L) else (k, v))
-  (finalCharCounts.values.max / 2) - (finalCharCounts.values.min / 2)
+    .map((k, v) => if edgeChars.contains(k) then (k, v + 1L) else (k, v))
+  (charCounts.values.max / 2) - (charCounts.values.min / 2)
 
 def insertPolymers(mappings: Mappings)(pairs: PairCounts, it: Int): PairCounts =
   pairs.foldLeft(Map())(insertNewPolymers(mappings))
