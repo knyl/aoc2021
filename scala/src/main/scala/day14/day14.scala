@@ -3,71 +3,53 @@ package day14
 import scala.annotation.tailrec
 import scala.io.Source
 
+type MapKey = (Char, Char)
+type Mappings = Map[MapKey, Char]
+type PairCounts = Map[MapKey, Long]
 
-def solve(start: String, mappings: Map[String, String]): Int =
-  val lastString = doIterations(start, mappings, 10)
-  val groups = lastString.toCharArray.groupBy(identity).values.map(_.length)
-  groups.max - groups.min
+def solve(start: String, mappings: Mappings, iterations: Int): Long =
+  val pairMap = createPairMap(start)
+  val resultingPairs = (0 until iterations).foldLeft(pairMap)(insertPolymers(mappings))
+  getResult(resultingPairs, start)
 
-@tailrec
-def doIterations(start: String, mappings: Map[String, String], iterations: Int, currIteration: Int = 0): String =
-  if currIteration == iterations then
-    start.reverse
-  else
-    val (acc, newString) = start.tail.foldLeft((mappings, start.head.toString))(nextString)
-    //println(s"$currIteration: ${newString.reverse}")
-    doIterations(newString.reverse, mappings, iterations, currIteration + 1)
+def createPairMap(start: String): PairCounts =
+  (start zip start.tail).groupBy(identity).map((k, v) => (k, v.size.toLong))
 
-def nextString(acc: (Map[String, String], String), el: Char): (Map[String, String], String) =
-  val (mappings, currString) = acc
-  val key = currString.head.toString + el.toString
-  val value = mappings.getOrElse(key, "")
-  val nextString = el.toString + value + currString
-  (mappings, nextString)
-
-def solve2(start: String, mappings: Map[String, String]): Long =
-  val pairs: List[String] = (start.tail zip start.reverse.tail.reverse).map((c1, c2) => c2.toString + c1.toString).toList
-  val pairMap: Map[String, Long] = pairs.groupBy(identity).map((k, v) => (k, v.size.toLong))
-  val resultingPairs = doIterations2(pairMap, mappings, 40)
-  val charCounts: List[(String, Long)] = resultingPairs.toList.flatMap((k:String, v:Long) => List((k.charAt(0).toString, v), (k.charAt(1).toString, v)))
-  val finalCharCounts0: Map[String, Long] = charCounts.groupBy(_._1).map((k:String, v:List[(String, Long)]) => (k, v.map(_._2).sum))
-  val startChar = start.charAt(0).toString
-  val endChar = start.reverse.charAt(0).toString
-  val finalCharCounts = finalCharCounts0.map((k, v) => if k == startChar || k == endChar then (k, v+1) else (k, v))
+def getResult(resultingPairs: PairCounts, start: String): Long =
+  val charCounts = resultingPairs.toList
+    .flatMap((k, v) => List((k._1, v), (k._2, v)))
+    .groupBy(_._1)
+    .map((k, v) => (k, v.map(_._2).sum))
+  val edgeChars = Set(start.charAt(0), start.charAt(start.length - 1))
+  val finalCharCounts = charCounts.map((k, v) => if edgeChars.contains(k) then (k, v + 1L) else (k, v))
   (finalCharCounts.values.max / 2) - (finalCharCounts.values.min / 2)
 
-@tailrec
-def doIterations2(pairs: Map[String, Long], mappings: Map[String, String], iterations: Long, currIteration: Long = 0): Map[String, Long] =
-  if iterations == currIteration then
-    pairs
-  else
-   val pairList: List[(String, Long)] = pairs.toList.flatMap((k, v) => getNewPairs(k, v, mappings))
-   val groups0 = pairList.groupBy(_._1)
-   val groups = groups0.map((key, list) => (key, list.map(_._2).sum)).toMap
-   doIterations2(groups, mappings, iterations, currIteration + 1)
+def insertPolymers(mappings: Mappings)(pairs: PairCounts, it: Int): PairCounts =
+  pairs.foldLeft(Map())(insertNewPolymers(mappings))
 
-def getNewPairs(key: String, v: Long, mappings: Map[String, String]): List[(String, Long)] =
-  if mappings.contains(key) then
-    val newChar = mappings.getOrElse(key, "")
-    List((key.charAt(0).toString + newChar, v), (newChar + key.charAt(1).toString, v))
-  else
-    List((key, v))
+def insertNewPolymers(mappings: Mappings)(pairs: PairCounts, el: (MapKey, Long)): PairCounts =
+  val newPairs = getNewPairs(el._1, el._2, mappings)
+  pairs ++ newPairs.map((k, v) => (k, v + pairs.getOrElse(k, 0L)))
 
-def parseInput(lines: List[String]): Map[String, String] = lines.map(getLine).toMap
-def getLine(line: String): (String, String) = line match {
-  case s"$k -> $v" => (k, v)
+def getNewPairs(key: MapKey, v: Long, mappings: Mappings): List[(MapKey, Long)] = (key, mappings.get(key)) match
+  case (_, None) => List((key, v))
+  case ((c1, c2), Some(char)) => List(((c1, char), v), ((char, c2), v))
+
+def parseInput(lines: List[String]): Mappings = lines.map(getLine).toMap
+
+def getLine(line: String): ((Char, Char), Char) = line.toCharArray match
+  case Array(c1, c2, ' ', '-', '>', ' ', v) => ((c1, c2), v)
   case _ => throw RuntimeException(s"Can't parse $line")
-}
 
 @main
 def main(): Unit =
-  val lines = Source.fromResource("day14.txt").getLines().filterNot(_.isBlank).toList
-  //val lines = example.split("\n").filterNot(_.isBlank).toList
+  //val lines = Source.fromResource("day14.txt").getLines().filterNot(_.isBlank).toList
+  val lines = example.split("\n").filterNot(_.isBlank).toList
   val start = lines.head
   val mappings = parseInput(lines.tail)
 
-  println("Pt1: " + solve(start, mappings))
-  println("Pt2: " + solve2(start, mappings))
+  println("Pt1: " + solve(start, mappings, 10))
+  println("Pt2: " + solve(start, mappings, 40))
 
 
 val example =
